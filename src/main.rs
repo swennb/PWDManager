@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use std::collections::HashMap;
-
+use std::fs;
 
 fn create_database(databaseName: String) -> Result<()>{
     let static_DB_Name = databaseName.clone();
@@ -21,17 +21,28 @@ fn create_database(databaseName: String) -> Result<()>{
     Ok(())
 
 }
-fn encrypt(databaseName: String) {
-    let static_DB_Name = databaseName.clone();
+fn encrypt(database_name: String) {
+    let static_db_name = database_name.clone();
     let pwd = new_magic_crypt!("pwd", 256);
-    pwd.encrypt_reader_to_writer::<u256>(&mut )
+
+    let open_file = fs::read(static_db_name);
+    match open_file {
+        Ok(open_file) => {
+            println!("File found {:?}", open_file);
+        }
+        Err(e) =>{
+            println!("Error file not found \n {:?}", e);
+        }
+    }
+    
+
 }
 
 fn main() -> Result<()> {
    let mut line = String::new();
    println!("Enter database name:");
    let input1 = std::io::stdin().read_line(&mut line).unwrap().to_string();
-   create_database(input1);
+   create_database(input1).expect("Not working");
 
     Ok(())
 }
