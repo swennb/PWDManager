@@ -2,25 +2,42 @@ use rusqlite::{Connection, Result};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use std::collections::HashMap;
 use std::fs;
+use std::io;
 
-fn create_database(databaseName: String) -> Result<()>{
-    let static_DB_Name = databaseName.clone();
-    let nullandvoid:&String = &String::from("0");
-    let connection = Connection::open(databaseName)?;
-    connection.execute("create table if not exists test (
+struct PasswordDummyData {
+    id: String,
+    name: String,
+
+}
+
+fn create_database(database_name: String) -> Result<()>{
+
+    let passw = PasswordDummyData{
+        id: String::from("1"),
+        name: String::from("Test")
+    };
+
+    let static_db_name = database_name.clone();
+    let full_db_name = static_db_name.clone() + ".sqlite";
+    let connection = Connection::open(full_db_name)?;
+    connection.execute("create table if not exists passwords (
         id integer primary key, 
         name text not null unique)", ())?;
-    let mut me = HashMap::new();
-    me.insert(String::from("ID"), String::from("01"));
-    me.insert(String::from("Name"), String::from("Swen"));
+    let conn_insert = connection.execute("INSERT INTO passwords (id, name) values (?1, ?2)", (&passw.id, &passw.name));
+    match conn_insert {
+        Ok(conn_insert) => {
+            println!("Yeayea {:?}", conn_insert);
+        }
+        Err(e) =>{
+            println!("Sql not working \n {:?}", e);
+        }
+    }
     
-    connection.execute("INSERT INTO test, (id, name) VALUES (?1, ?2)", (
-        &me.get("ID").unwrap_or(nullandvoid), &me.get("Name").unwrap_or(nullandvoid))
-    )?;
-    encrypt(static_DB_Name);
+    //encrypt(static_db_name);
     Ok(())
 
 }
+
 fn encrypt(database_name: String) {
     let static_db_name = database_name.clone();
     let pwd = new_magic_crypt!("pwd", 256);
@@ -41,8 +58,8 @@ fn encrypt(database_name: String) {
 fn main() -> Result<()> {
    let mut line = String::new();
    println!("Enter database name:");
-   let input1 = std::io::stdin().read_line(&mut line).unwrap().to_string();
-   create_database(input1).expect("Not working");
-
+   let input1 = io::stdin().read_line(&mut line);
+   let line = line.trim().to_string();
+   create_database(line).expect("Not working");
     Ok(())
 }
